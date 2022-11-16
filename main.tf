@@ -11,13 +11,13 @@ resource "aws_api_gateway_rest_api" "api_gateway_example_fool" {
       description = "I am the terraform robot beep beep!"
     }
     paths = {
-      "/wtf" = {
+      "/v1" = {
         get = {
           x-amazon-apigateway-integration = {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "https://mvc.samhaycraft.net"
+            uri                  = "http://mvc.samhaycraft.net/v1"
           }
         }
       }
