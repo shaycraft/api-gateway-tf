@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fcec97b7-fd92-496c-9f2a-114b3d4bc991" name="Changes" comment="">
+    <list default="true" id="fcec97b7-fd92-496c-9f2a-114b3d4bc991" name="Changes" comment="chore: vcs mappings">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/api-gateway.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/api-gateway.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.tf" beforeDir="false" afterPath="$PROJECT_DIR$/main.tf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +27,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "TF_FMT": "false",
     "WebServerToolWindowFactoryState": "false",
     "last_opened_file_path": "/Users/shaycraft/src/terraform/api-gateway",
     "nodejs_package_manager_path": "npm",
@@ -41,8 +43,16 @@
       <option name="presentableId" value="Default" />
       <updated>1668569838348</updated>
       <workItem from="1668569840292" duration="37000" />
-      <workItem from="1668569916638" duration="478000" />
+      <workItem from="1668569916638" duration="1112000" />
     </task>
+    <task id="LOCAL-00001" summary="chore: vcs mappings">
+      <created>1668570669749</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1668570669749</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -58,5 +68,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="chore: vcs mappings" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: vcs mappings" />
   </component>
 </project>
