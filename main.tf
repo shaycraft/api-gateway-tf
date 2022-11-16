@@ -8,6 +8,7 @@ resource "aws_api_gateway_rest_api" "api_gateway_example_fool" {
     info = {
       title   = "api_gateway_example_fool"
       version = "1.0"
+      description = "I am the terraform robot beep beep!"
     }
     paths = {
       "/wtf" = {
