@@ -23,7 +23,7 @@ resource "aws_api_gateway_rest_api" "api_gateway_example_fool" {
     }
   })
 
-  name = "example"
+  name = "api_gateway_example_fool"
 
   endpoint_configuration {
     types = ["REGIONAL"]
