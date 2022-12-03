@@ -2,6 +2,21 @@ provider "aws" {
   region = "us-west-2"
 }
 
+resource "aws_apigatewayv2_deployment" "api_apigateway_example_fool_deployment" {
+  api_id      = aws_apigatewayv2_api.api_gateway_example_fool.id
+  description = "Terraform robot deployment beep boop beep!"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_apigatewayv2_stage" "api_gateway_example_fool_stage" {
+  api_id = aws_apigatewayv2_api.api_gateway_example_fool.id
+  name = "$default"
+  deployment_id = aws_apigatewayv2_deployment.api_apigateway_example_fool_deployment.id
+}
+
 resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
   body = jsonencode({
     openapi = "3.0.1"
@@ -36,7 +51,7 @@ resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
     }
   })
 
-  name = "api-gateway-example-fool"
+  name          = "api-gateway-example-fool"
   protocol_type = "HTTP"
-  
+
 }
