@@ -22,12 +22,14 @@ resource "aws_iam_role" "tf_iam_for_lambda" {
 EOF
 }
 
+
+
 resource "aws_lambda_function" "tf-reverse-proxy-py" {
-  filename = "lambda_payload.zip"
+  filename      = "lambda_payload.zip"
   function_name = "tf-reverse-proxy-py"
-  role = aws_iam_role.tf_iam_for_lambda.arn
-  handler = "lambda_function.lambda_handler"
-  runtime = "python3.9"
+  role          = aws_iam_role.tf_iam_for_lambda.arn
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.9"
 }
 
 resource "aws_apigatewayv2_deployment" "api_apigateway_lambda_fool_deployment" {
@@ -44,6 +46,7 @@ resource "aws_apigatewayv2_stage" "api_gateway_lambda_fool_stage" {
   name          = "$default"
   deployment_id = aws_apigatewayv2_deployment.api_apigateway_lambda_fool_deployment.id
 }
+
 
 resource "aws_apigatewayv2_api" "api_gateway_lambda_fool" {
   body = jsonencode({
