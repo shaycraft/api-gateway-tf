@@ -2,6 +2,34 @@ provider "aws" {
   region = "us-west-2"
 }
 
+resource "aws_iam_role" "tf_iam_for_lambda" {
+  name = "tf_iam_for_lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_lambda_function" "tf-reverse-proxy-py" {
+  filename = "lambda_payload.zip"
+  function_name = "tf-reverse-proxy-py"
+  role = aws_iam_role.tf_iam_for_lambda.arn
+  handler = "lambda_function.lambda_handler"
+  runtime = "python3.9"
+}
+
 resource "aws_apigatewayv2_deployment" "api_apigateway_lambda_fool_deployment" {
   api_id      = aws_apigatewayv2_api.api_gateway_lambda_fool.id
   description = "Terraform robot deployment beep boop beep!"
@@ -44,7 +72,7 @@ resource "aws_apigatewayv2_api" "api_gateway_lambda_fool" {
             payloadFormatVersion = "2.0"
             connectionType       = "INTERNET"
             type                 = "AWS_PROXY"
-            uri                  = "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:395053504835:function:issa-py-reverse-proxy/invocations"
+            uri                  = aws_lambda_function.tf-reverse-proxy-py.invoke_arn
           }
         }
       }
