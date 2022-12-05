@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "lambda_role"
+  name = "teraform_lambda_role"
 
   assume_role_policy = <<EOF
 {
@@ -22,14 +22,28 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
+# had to manually do this to make this work
+# aws lambda add-permission \
+#  --statement-id f35d4c84-8212-593d-9365-fb540b66fdc4 \
+#  --action lambda:InvokeFunction \
+#  --function-name "arn:aws:lambda:us-west-2:395053504835:function:reverse-proxy-arcgis-tf" \
+#  --principal apigateway.amazonaws.com \
+#  --source-arn "arn:aws:execute-api:us-west-2:395053504835:h5jkvbech3/*/*/{proxy+}"
+
+resource "aws_iam_role_policy_attachment" "lambda_policy" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 
 
 resource "aws_lambda_function" "lambda_function" {
-  filename      = "lambda_payload.zip"
-  function_name = "reverse-proxy-arcgis-tf"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
+  filename         = "lambda_payload.zip"
+  function_name    = "reverse-proxy-arcgis-tf"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.9"
+  source_code_hash = filebase64("./lambda_payload.zip")
 }
 
 resource "aws_apigatewayv2_deployment" "deployment" {
