@@ -36,8 +36,16 @@ resource "aws_apigatewayv2_deployment" "deployment" {
   api_id      = aws_apigatewayv2_api.lambda_proxy_api.id
   description = "Terraform robot deployment beep boop beep!"
   depends_on = [
-    aws_apigatewayv2_route.proxy_route
+    aws_apigatewayv2_route.proxy_route,
+    aws_apigatewayv2_integration.lambda_integration
   ]
+
+  triggers = {
+    redeployment = sha1(join(",", tolist(
+      [jsonencode(aws_apigatewayv2_integration.lambda_integration),
+      jsonencode(aws_apigatewayv2_route.proxy_route)]
+    )))
+  }
 
   lifecycle {
     create_before_destroy = true
@@ -54,18 +62,18 @@ resource "aws_apigatewayv2_route" "proxy_route" {
   api_id    = aws_apigatewayv2_api.lambda_proxy_api.id
   route_key = "ANY /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
-
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
   api_id           = aws_apigatewayv2_api.lambda_proxy_api.id
   integration_type = "AWS_PROXY"
 
-  connection_type    = "INTERNET"
-  integration_method = "POST"
-  # integration_uri    = aws_lambda_function.lambda_function.invoke_arn
-  integration_uri = aws_lambda_function.lambda_function.arn
+  connection_type        = "INTERNET"
+  integration_method     = "POST"
   payload_format_version = "2.0"
+  integration_uri        = aws_lambda_function.lambda_function.arn
+  # integration_uri        = "https://sampleserver6.arcgisonline.com/{proxy}"
+
 
 }
 
