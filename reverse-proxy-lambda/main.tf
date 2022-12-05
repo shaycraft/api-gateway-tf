@@ -32,8 +32,8 @@ resource "aws_lambda_function" "tf-reverse-proxy-py" {
   runtime       = "python3.9"
 }
 
-resource "aws_apigatewayv2_deployment" "api_apigateway_lambda_fool_deployment" {
-  api_id      = aws_apigatewayv2_api.api_gateway_lambda_fool.id
+resource "aws_apigatewayv2_deployment" "deployment" {
+  api_id      = aws_apigatewayv2_api.lambda_proxy_api.id
   description = "Terraform robot deployment beep boop beep!"
 
   lifecycle {
@@ -41,18 +41,22 @@ resource "aws_apigatewayv2_deployment" "api_apigateway_lambda_fool_deployment" {
   }
 }
 
-resource "aws_apigatewayv2_stage" "api_gateway_lambda_fool_stage" {
-  api_id        = aws_apigatewayv2_api.api_gateway_lambda_fool.id
+resource "aws_apigatewayv2_stage" "stage" {
+  api_id        = aws_apigatewayv2_api.lambda_proxy_api.id
   name          = "$default"
-  deployment_id = aws_apigatewayv2_deployment.api_apigateway_lambda_fool_deployment.id
+  deployment_id = aws_apigatewayv2_deployment.deployment.id
 }
 
+# resource "aws_apigatewayv2_integration" "integration" {
+#   api_id = aws_apigatewayv2_api.lambda_proxy_api.id
+# }
 
-resource "aws_apigatewayv2_api" "api_gateway_lambda_fool" {
+
+resource "aws_apigatewayv2_api" "lambda_proxy_api" {
   body = jsonencode({
     openapi = "3.0.1"
     info = {
-      title       = "api-gateway-example-fool"
+      title       = "Terraformed Reverse Proxy Lambda"
       version     = "1.0"
       description = "I am the terraform robot beep beep!"
     }
@@ -82,7 +86,7 @@ resource "aws_apigatewayv2_api" "api_gateway_lambda_fool" {
     }
   })
 
-  name          = "api-gateway-example-fool"
+  name          = "Terraform Reverse Proxy Lambda"
   protocol_type = "HTTP"
 
 }
