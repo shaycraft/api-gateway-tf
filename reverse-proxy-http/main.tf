@@ -43,7 +43,7 @@ resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "http://mvc.samhaycraft.net/{proxy}"
+            uri                  = "https://sampleserver6.arcgisonline.com/{proxy}"
             connectionType       = "INTERNET"
           }
         }
