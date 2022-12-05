@@ -2,8 +2,9 @@ provider "aws" {
   region = "us-west-2"
 }
 
-resource "aws_apigatewayv2_deployment" "api_apigateway_example_fool_deployment" {
-  api_id      = aws_apigatewayv2_api.api_gateway_example_fool.id
+
+resource "aws_apigatewayv2_deployment" "default_deployment" {
+  api_id      = aws_apigatewayv2_api.esri_http_proxy.id
   description = "Terraform robot deployment beep boop beep!"
 
   lifecycle {
@@ -11,17 +12,17 @@ resource "aws_apigatewayv2_deployment" "api_apigateway_example_fool_deployment" 
   }
 }
 
-resource "aws_apigatewayv2_stage" "api_gateway_example_fool_stage" {
-  api_id = aws_apigatewayv2_api.api_gateway_example_fool.id
+resource "aws_apigatewayv2_stage" "default_stage" {
+  api_id = aws_apigatewayv2_api.esri_http_proxy.id
   name = "$default"
-  deployment_id = aws_apigatewayv2_deployment.api_apigateway_example_fool_deployment.id
+  deployment_id = aws_apigatewayv2_deployment.default_deployment.id
 }
 
-resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
+resource "aws_apigatewayv2_api" "esri_http_proxy" {
   body = jsonencode({
     openapi = "3.0.1"
     info = {
-      title       = "api-gateway-example-fool"
+      title       = "Esri Http Proxy"
       version     = "1.0"
       description = "I am the terraform robot beep beep!"
     }
@@ -43,7 +44,7 @@ resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "http://mvc.samhaycraft.net/{proxy}"
+            uri                  = "https://sampleserver6.arcgisonline.com/{proxy}"
             connectionType       = "INTERNET"
           }
         }
@@ -51,7 +52,7 @@ resource "aws_apigatewayv2_api" "api_gateway_example_fool" {
     }
   })
 
-  name          = "api-gateway-example-fool"
+  name          = "ESRI HTTP Proxy"
   protocol_type = "HTTP"
 
 }
