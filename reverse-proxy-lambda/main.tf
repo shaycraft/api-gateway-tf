@@ -2,45 +2,71 @@ provider "aws" {
   region = "us-west-2"
 }
 
-resource "aws_iam_role" "lambda_role" {
-  name = "teraform_lambda_role"
+data "aws_caller_identity" "current" {
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
+}
+
+# iam
+data "aws_iam_policy_document" "policy_document" {
+  statement {
+    sid    = "IssaLambdaAssumeRole"
+    effect = "Allow"
+
+    principals {
+      identifiers = ["lambda.amazonaws.com"]
+      type        = "Service"
     }
-  ]
-}
-EOF
-}
 
-# had to manually do this to make this work
-# aws lambda add-permission \
-#  --statement-id f35d4c84-8212-593d-9365-fb540b66fdc4 \
-#  --action lambda:InvokeFunction \
-#  --function-name "arn:aws:lambda:us-west-2:395053504835:function:reverse-proxy-arcgis-tf" \
-#  --principal apigateway.amazonaws.com \
-#  --source-arn "arn:aws:execute-api:us-west-2:395053504835:h5jkvbech3/*/*/{proxy+}"
-
-resource "aws_iam_role_policy_attachment" "lambda_policy" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+    actions = ["sts:AssumeRole"]
+  }
 }
 
+data "aws_iam_policy_document" "policy_document_exec" {
+  version = "2012-10-17"
 
+  statement {
+    sid    = "issaLambdaExecPermission"
+    effect = "Allow"
+
+    resources = ["*"]
+
+    actions = ["lambda:InvokeFunction"]
+  }
+}
+
+resource "aws_iam_policy" "policy" {
+  name   = "allow-lambda-exec-policy"
+  policy = data.aws_iam_policy_document.policy_document_exec.json
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name               = "iam_for_lambda"
+  assume_role_policy = data.aws_iam_policy_document.policy_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "base" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.policy.arn
+}
+
+#Lambda 
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "arn:aws:lambda:us-west-2:395053504835:function:reverse-proxy-arcgis-tf"
+  principal     = "apigateway.amazonaws.com"
+
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  #source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}/${aws_api_gateway_resource.resource.path}"
+  # TODO:  try qualified? or integration?_arn?
+  #source_arn = aws_lambda_function.lambda_function.arn
+  source_arn = "arn:aws:execute-api:us-west-2:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
+}
 
 resource "aws_lambda_function" "lambda_function" {
   filename         = "lambda_payload.zip"
   function_name    = "reverse-proxy-arcgis-tf"
-  role             = aws_iam_role.lambda_role.arn
+  role             = aws_iam_role.iam_for_lambda.arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.9"
   source_code_hash = filebase64("./lambda_payload.zip")
