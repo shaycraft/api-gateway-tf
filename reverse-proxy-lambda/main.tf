@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-west-2"
+  region = var.AWS_REGION
 }
 
 data "aws_caller_identity" "current" {
@@ -60,7 +60,7 @@ resource "aws_lambda_permission" "apigw_lambda" {
   #source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}/${aws_api_gateway_resource.resource.path}"
   # TODO:  try qualified? or integration?_arn?
   #source_arn = aws_lambda_function.lambda_function.arn
-  source_arn = "arn:aws:execute-api:us-west-2:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
+  source_arn = "arn:aws:execute-api:${var.AWS_REGION}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
 }
 
 resource "aws_lambda_function" "lambda_function" {
