@@ -69,6 +69,7 @@ resource "aws_subnet" "subnet_public" {
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
+
   tags = {
     Name = "terraform internet_gateway"
   }
@@ -102,7 +103,7 @@ resource "aws_security_group" "security_group" {
     self        = true
     from_port   = 0
     to_port     = 0
-    cidr_blocks = [aws_vpc.vpc.cidr_block]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
