@@ -7,7 +7,7 @@ data "aws_caller_identity" "current" {
 }
 
 # iam
-data "aws_iam_policy_document" "policy_document" {
+data "aws_iam_policy_document" "policy_document_assume_lambda_role" {
   statement {
     sid    = "IssaLambdaAssumeRole"
     effect = "Allow"
@@ -41,7 +41,7 @@ resource "aws_iam_policy" "policy" {
 
 resource "aws_iam_role" "iam_for_lambda" {
   name               = "iam_for_lambda"
-  assume_role_policy = data.aws_iam_policy_document.policy_document.json
+  assume_role_policy = data.aws_iam_policy_document.policy_document_assume_lambda_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "base" {
@@ -57,24 +57,24 @@ resource "aws_vpc" "vpc" {
   instance_tenancy     = "default"
 
   tags = {
-    Name = "test private vpc"
+    Name = "terraform private vpc"
   }
 }
-resource "aws_subnet" "subnet" {
+resource "aws_subnet" "subnet_public" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = false // makes it a private subnet
+  map_public_ip_on_launch = true // makes it a public subnet
   availability_zone       = var.AVAILABILITY_ZONE
 }
 
 resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "internet_gateway"
+    Name = "terraform internet_gateway"
   }
 }
 
-resource "aws_route_table" "route_table" {
+resource "aws_route_table" "route_table_public" {
   vpc_id = aws_vpc.vpc.id
 
   route {
@@ -85,65 +85,37 @@ resource "aws_route_table" "route_table" {
   }
 
   tags = {
-    Name = "issa-crt"
+    Name = "terraform public route_table"
   }
 }
 
-resource "aws_route_table_association" "route_table_association" {
-  subnet_id      = aws_subnet.subnet.id
-  route_table_id = aws_route_table.route_table.id
+resource "aws_route_table_association" "route_table_association_public" {
+  subnet_id      = aws_subnet.subnet_public.id
+  route_table_id = aws_route_table.route_table_public.id
 }
 
 resource "aws_security_group" "security_group" {
   vpc_id = aws_vpc.vpc.id
-  egress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = ""
-      from_port        = 0
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "-1"
-      security_groups  = []
-      self             = false
-      to_port          = 0
-    }
-  ]
-  ingress = [
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = "SSH Port"
-      from_port        = 22
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "tcp"
-      security_groups  = []
-      self             = false
-      to_port          = 22
-    },
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = "HTTP port"
-      from_port        = 80
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "tcp"
-      security_groups  = []
-      self             = false
-      to_port          = 80
-    },
-    {
-      cidr_blocks      = ["0.0.0.0/0", ]
-      description      = "HTTPS port"
-      from_port        = 443
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      protocol         = "tcp"
-      security_groups  = []
-      self             = false
-      to_port          = 443
-    }
-  ]
+
+  ingress {
+    protocol    = "-1"
+    self        = true
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc_access_execution" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 #Lambda 
@@ -153,10 +125,6 @@ resource "aws_lambda_permission" "apigw_lambda" {
   function_name = "arn:aws:lambda:us-west-2:395053504835:function:reverse-proxy-arcgis-tf"
   principal     = "apigateway.amazonaws.com"
 
-  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
-  #source_arn = "arn:aws:execute-api:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}/${aws_api_gateway_resource.resource.path}"
-  # TODO:  try qualified? or integration?_arn?
-  #source_arn = aws_lambda_function.lambda_function.arn
   source_arn = "arn:aws:execute-api:${var.AWS_REGION}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
 }
 
@@ -168,7 +136,7 @@ resource "aws_lambda_function" "lambda_function" {
   runtime          = "python3.9"
   source_code_hash = filebase64("./lambda_payload.zip")
   vpc_config {
-    subnet_ids         = [aws_subnet.subnet.id]
+    subnet_ids         = [aws_subnet.subnet_public.id]
     security_group_ids = [aws_security_group.security_group.id]
   }
 }
