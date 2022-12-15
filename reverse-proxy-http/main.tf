@@ -13,15 +13,15 @@ resource "aws_apigatewayv2_deployment" "default_deployment" {
 }
 
 resource "aws_apigatewayv2_stage" "default_stage" {
-  api_id = aws_apigatewayv2_api.esri_http_proxy.id
-  name = "$default"
+  api_id        = aws_apigatewayv2_api.esri_http_proxy.id
+  name          = "$default"
   deployment_id = aws_apigatewayv2_deployment.default_deployment.id
 }
 
 resource "aws_apigatewayv2_api" "esri_http_proxy" {
   body = jsonencode({
     openapi = "3.0.1"
-    info = {
+    info    = {
       title       = "Esri Http Proxy"
       version     = "1.0"
       description = "I am the terraform robot beep beep!"
@@ -34,7 +34,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             name        = "proxy"
             in          = "path"
             required    = true
-            schema = {
+            schema      = {
               type = "string"
             }
           }
@@ -44,7 +44,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "https://sampleserver6.arcgisonline.com/{proxy}"
+            uri                  = "${var.PROXY_BASE_PATH}/{proxy}"
             connectionType       = "INTERNET"
           }
         }
