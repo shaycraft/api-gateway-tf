@@ -141,7 +141,7 @@ resource "aws_lambda_function" "lambda_function" {
   handler       = var.LAMBDA_HANDLER
   runtime       = var.LAMBDA_RUNTIME
   #source_code_hash = filebase64("./lambda_payload.zip")
-  source_code_hash = base64sha256(file("./lambda_payload.zip"))
+  source_code_hash = base64sha256(filebase64("./lambda_payload.zip"))
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_public.id]
     security_group_ids = [aws_security_group.security_group.id]
