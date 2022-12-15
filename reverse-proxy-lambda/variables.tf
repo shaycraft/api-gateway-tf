@@ -13,3 +13,15 @@ variable "LAMBDA_RUNTIME" {
 variable "LAMBDA_HANDLER" {
   type = string
 }
+
+variable "LAMBDA_NAME" {
+  type = string
+}
+
+variable "LAMBDA_DESCRIPTION" {
+  type = string
+}
+
+variable "LAMBDA_FILE" {
+  type = string
+}
