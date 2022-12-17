@@ -3,7 +3,7 @@ const ping = require('ping');
 function probeIt(host) {
   return new Promise((res, err) => {
     try {
-      ping.sys.probe(host, function (isAlive) {
+      ping.sys.probe(host, function(isAlive) {
         console.log('isAlive = ', isAlive);
         const msg = isAlive
           ? 'host ' + host + ' is alive'
@@ -17,7 +17,7 @@ function probeIt(host) {
   });
 }
 
-const mainThang = async (event) => {
+exports.handler = async (event) => {
   const hosts = ['10.0.1.1', '10.0.1.86', 'google.com', 'yahoo.com'];
 
   const messages = [];
@@ -26,12 +26,11 @@ const mainThang = async (event) => {
     messages.push(await probeIt(host));
   }
 
-  messages.push(JSON.stringify(event));
-
   return {
     statusCode: 200,
-    body: JSON.stringify(messages),
+    body: JSON.stringify({
+      event,
+      messages
+    })
   };
 };
-
-exports.handler = mainThang;
