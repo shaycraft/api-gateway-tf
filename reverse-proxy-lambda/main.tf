@@ -133,14 +133,21 @@ resource "aws_lambda_permission" "apigw_lambda" {
   source_arn = "arn:aws:execute-api:${var.AWS_REGION}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
 }
 
+data "archive_file" "archive" {
+  output_path = var.LAMBDA_FILE
+  type        = "zip"
+  source_dir  = "lambda_payload"
+}
+
 resource "aws_lambda_function" "lambda_function" {
-  filename         = var.LAMBDA_FILE
-  function_name    = var.LAMBDA_NAME
-  description      = var.LAMBDA_DESCRIPTION
-  role             = aws_iam_role.iam_for_lambda.arn
-  handler          = var.LAMBDA_HANDLER
-  runtime          = var.LAMBDA_RUNTIME
-  source_code_hash = base64sha256(filebase64("./${var.LAMBDA_FILE}"))
+  filename      = var.LAMBDA_FILE
+  function_name = var.LAMBDA_NAME
+  description   = var.LAMBDA_DESCRIPTION
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = var.LAMBDA_HANDLER
+  runtime       = var.LAMBDA_RUNTIME
+  #source_code_hash = base64sha256(filebase64("./${var.LAMBDA_FILE}"))
+  source_code_hash = data.archive_file.archive.output_base64sha256
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_public.id]
     security_group_ids = [aws_security_group.security_group.id]
