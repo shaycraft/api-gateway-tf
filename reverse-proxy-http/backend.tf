@@ -3,7 +3,7 @@ terraform {
     organization = "mr-gav-meow"
 
     workspaces {
-	name = "reverse-proxy-poc"
+      name = "reverse-proxy-poc"
     }
   }
 }
