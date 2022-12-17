@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      source="hashicorp/aws"
+      source = "hashicorp/aws"
     }
   }
 }
@@ -20,9 +20,13 @@ resource "aws_apigatewayv2_deployment" "default_deployment" {
   }
 }
 
+# output "endpoint" {
+#   value = aws_apigatewayv2_api.esri_http_proxy.api_endpoint
+# }
+
 resource "aws_apigatewayv2_stage" "default_stage" {
-  api_id = aws_apigatewayv2_api.esri_http_proxy.id
-  name = "$default"
+  api_id        = aws_apigatewayv2_api.esri_http_proxy.id
+  name          = "$default"
   deployment_id = aws_apigatewayv2_deployment.default_deployment.id
 }
 
@@ -30,9 +34,12 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
   body = jsonencode({
     openapi = "3.0.1"
     info = {
-      title       = "Esri Http Proxy"
+      title       = "Esri Http Proxy (HTTP Integration)"
       version     = "1.0"
       description = "I am the terraform robot beep beep!"
+      tags = {
+        Name = "terraform"
+      }
     }
     paths = {
       "/{proxy+}" = {
