@@ -3,7 +3,7 @@ const ping = require('ping');
 function probeIt(host) {
   return new Promise((res, err) => {
     try {
-      ping.sys.probe(host, function(isAlive) {
+      ping.sys.probe(host, function (isAlive) {
         console.log('isAlive = ', isAlive);
         const msg = isAlive
           ? 'host ' + host + ' is alive'
@@ -27,10 +27,7 @@ exports.handler = async (event) => {
   }
 
   return {
-    statusCode: 200,
-    body: JSON.stringify({
-      event,
-      messages
-    })
+    event,
+    messages,
   };
 };
