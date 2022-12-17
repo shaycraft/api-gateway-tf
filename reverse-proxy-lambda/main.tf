@@ -65,6 +65,10 @@ resource "aws_subnet" "subnet_public" {
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true // makes it a public subnet
   availability_zone       = var.AVAILABILITY_ZONE
+
+  tags = {
+    Name = "terraform subnet_public"
+  }
 }
 
 resource "aws_internet_gateway" "internet_gateway" {
@@ -123,20 +127,27 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc
 resource "aws_lambda_permission" "apigw_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = "arn:aws:lambda:us-west-2:395053504835:function:reverse-proxy-arcgis-tf"
+  function_name = "arn:aws:lambda:us-west-2:395053504835:function:${aws_lambda_function.lambda_function.function_name}"
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "arn:aws:execute-api:${var.AWS_REGION}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
 }
 
+data "archive_file" "archive" {
+  output_path = var.LAMBDA_FILE
+  type        = "zip"
+  source_dir  = "lambda_payload"
+}
+
 resource "aws_lambda_function" "lambda_function" {
-  filename         = "lambda_payload.zip"
-  function_name    = "reverse-proxy-arcgis-tf"
-  description      = "Reverse proxy"
-  role             = aws_iam_role.iam_for_lambda.arn
-  handler          = "lambda_function.lambda_handler"
-  runtime          = "python3.9"
-  source_code_hash = filebase64("./lambda_payload.zip")
+  filename      = var.LAMBDA_FILE
+  function_name = var.LAMBDA_NAME
+  description   = var.LAMBDA_DESCRIPTION
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = var.LAMBDA_HANDLER
+  runtime       = var.LAMBDA_RUNTIME
+  #source_code_hash = base64sha256(filebase64("./${var.LAMBDA_FILE}"))
+  source_code_hash = data.archive_file.archive.output_base64sha256
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_public.id]
     security_group_ids = [aws_security_group.security_group.id]
@@ -157,8 +168,10 @@ resource "aws_apigatewayv2_deployment" "deployment" {
 
   triggers = {
     redeployment = sha1(join(",", tolist(
-      [jsonencode(aws_apigatewayv2_integration.lambda_integration),
-      jsonencode(aws_apigatewayv2_route.proxy_route)]
+      [
+        jsonencode(aws_apigatewayv2_integration.lambda_integration),
+        jsonencode(aws_apigatewayv2_route.proxy_route)
+      ]
     )))
   }
 
@@ -187,14 +200,16 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   integration_method     = "POST"
   payload_format_version = "2.0"
   integration_uri        = aws_lambda_function.lambda_function.arn
-  # integration_uri        = "https://sampleserver6.arcgisonline.com/{proxy}"
-
-
 }
 
 
 resource "aws_apigatewayv2_api" "lambda_proxy_api" {
   name          = "terraform-reverse-proxy-lambda"
   protocol_type = "HTTP"
+
+  tags = {
+    "created_by" = "terraform",
+    "keywords"   = "terraform proxy vpc-test"
+  }
 
 }

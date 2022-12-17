@@ -5,3 +5,23 @@ variable "AWS_REGION" {
 variable "AVAILABILITY_ZONE" {
   type = string
 }
+
+variable "LAMBDA_RUNTIME" {
+  type = string
+}
+
+variable "LAMBDA_HANDLER" {
+  type = string
+}
+
+variable "LAMBDA_NAME" {
+  type = string
+}
+
+variable "LAMBDA_DESCRIPTION" {
+  type = string
+}
+
+variable "LAMBDA_FILE" {
+  type = string
+}
