@@ -29,7 +29,7 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 resource "aws_apigatewayv2_api" "esri_http_proxy" {
   body = jsonencode({
     openapi = "3.0.1"
-    info    = {
+    info = {
       title       = "Esri Http Proxy"
       version     = "1.0"
       description = "I am the terraform robot beep beep!"
@@ -42,7 +42,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             name        = "proxy"
             in          = "path"
             required    = true
-            schema      = {
+            schema = {
               type = "string"
             }
           }
