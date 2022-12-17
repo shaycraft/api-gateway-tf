@@ -154,7 +154,7 @@ resource "aws_lambda_function" "lambda_function" {
 resource "aws_apigatewayv2_deployment" "deployment" {
   api_id      = aws_apigatewayv2_api.lambda_proxy_api.id
   description = "Terraform robot deployment beep boop beep!"
-  depends_on  = [
+  depends_on = [
     aws_apigatewayv2_route.proxy_route,
     aws_apigatewayv2_integration.lambda_integration
   ]
@@ -202,7 +202,7 @@ resource "aws_apigatewayv2_api" "lambda_proxy_api" {
 
   tags = {
     "created_by" = "terraform",
-    "keywords" = "terraform proxy vpc-test"
+    "keywords"   = "terraform proxy vpc-test"
   }
 
 }
