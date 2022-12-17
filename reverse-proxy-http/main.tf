@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     aws = {
-      source="hashicorp/aws"
+      source = "hashicorp/aws"
     }
   }
 }
@@ -21,8 +21,8 @@ resource "aws_apigatewayv2_deployment" "default_deployment" {
 }
 
 resource "aws_apigatewayv2_stage" "default_stage" {
-  api_id = aws_apigatewayv2_api.esri_http_proxy.id
-  name = "$default"
+  api_id        = aws_apigatewayv2_api.esri_http_proxy.id
+  name          = "$default"
   deployment_id = aws_apigatewayv2_deployment.default_deployment.id
 }
 
