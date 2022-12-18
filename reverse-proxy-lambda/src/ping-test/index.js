@@ -6,9 +6,7 @@ function probeIt(host) {
     try {
       ping.sys.probe(host, function (isAlive) {
         console.log('isAlive = ', isAlive);
-        const msg = isAlive
-          ? 'host ' + host + ' is alive'
-          : 'host ' + host + ' is dead';
+        const msg = `For host=${host}, isAlive returned ${isAlive}`;
         console.log(msg);
         res(msg);
       });
