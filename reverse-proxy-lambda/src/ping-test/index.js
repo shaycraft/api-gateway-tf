@@ -1,4 +1,5 @@
 const ping = require('ping');
+const version = 1.2;
 
 function probeIt(host) {
   return new Promise((res, err) => {
@@ -29,5 +30,6 @@ exports.handler = async (event) => {
   return {
     event,
     messages,
+    version,
   };
 };
