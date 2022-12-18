@@ -25,3 +25,7 @@ variable "LAMBDA_DESCRIPTION" {
 variable "LAMBDA_FILE" {
   type = string
 }
+
+variable "LAMBDA_SOURCE_DIR" {
+  type = string
+}

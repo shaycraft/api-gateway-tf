@@ -136,7 +136,7 @@ resource "aws_lambda_permission" "apigw_lambda" {
 data "archive_file" "archive" {
   output_path = var.LAMBDA_FILE
   type        = "zip"
-  source_dir  = "lambda_payload"
+  source_dir  = var.LAMBDA_SOURCE_DIR
 }
 
 resource "aws_lambda_function" "lambda_function" {
