@@ -13,8 +13,12 @@ LAMBDA_CONFIG = {
       source_dir  = "src/ping-test"
       handler     = "index.handler"
     }
-    #    "proxy" = {
-    #      runtime = "python3.9"
-    #    }
+    "proxy" = {
+      runtime     = "python3.9"
+      name        = "gis-reverse-proxy-tf"
+      description = "GIS server reverse proxy"
+      source_dir  = "src/gis-reverse-proxy"
+      handler     = "lambda_function.lambda_handler"
+    }
   }
 }

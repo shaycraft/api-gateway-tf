@@ -150,7 +150,7 @@ resource "aws_lambda_function" "lambda_function" {
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = local.selected_lambda_config.handler
   runtime       = local.selected_lambda_config.runtime
-  #source_code_hash = base64sha256(filebase64("./${var.LAMBDA_FILE}"))
+
   source_code_hash = data.archive_file.archive.output_base64sha256
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_public.id]
