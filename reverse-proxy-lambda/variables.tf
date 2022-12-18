@@ -1,31 +1,26 @@
-variable "AWS_REGION" {
+variable "aws_region" {
   type = string
 }
 
-variable "AVAILABILITY_ZONE" {
+variable "availability_zone" {
   type = string
 }
 
-variable "LAMBDA_RUNTIME" {
-  type = string
+variable "LAMBDA_CONFIG" {
+  type = object({
+    payload_file = string
+    selected = map(object({
+      runtime     = string
+      name        = string
+      description = string
+      source_dir  = string
+      handler     = string
+
+    }))
+  })
 }
 
-variable "LAMBDA_HANDLER" {
-  type = string
-}
-
-variable "LAMBDA_NAME" {
-  type = string
-}
-
-variable "LAMBDA_DESCRIPTION" {
-  type = string
-}
-
-variable "LAMBDA_FILE" {
-  type = string
-}
-
-variable "LAMBDA_SOURCE_DIR" {
-  type = string
+variable "SELECTED_LAMBDA" {
+  type    = string
+  default = "ping"
 }

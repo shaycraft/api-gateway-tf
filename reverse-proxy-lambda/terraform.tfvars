@@ -1,8 +1,20 @@
-AWS_REGION         = "us-west-2"
-AVAILABILITY_ZONE  = "us-west-2b"
-LAMBDA_RUNTIME     = "nodejs14.x"
-LAMBDA_HANDLER     = "index.handler"
-LAMBDA_DESCRIPTION = "Function to test network connectivity"
-LAMBDA_NAME        = "ping-test"
-LAMBDA_FILE        = "lambda_payload.zip"
-LAMBDA_SOURCE_DIR  = "src/ping-test"
+aws_region        = "us-west-2"
+availability_zone = "us-west-2b"
+
+LAMBDA_CONFIG = {
+  aws_region        = "us-west-2"
+  availability_zone = "us-west-2b"
+  payload_file      = "lambda_payload.zip"
+  selected = {
+    "ping" = {
+      runtime     = "nodejs14.x"
+      name        = "ping-test"
+      description = "Function to test internal and external network connectivity"
+      source_dir  = "src/ping-test"
+      handler     = "index.handler"
+    }
+    #    "proxy" = {
+    #      runtime = "python3.9"
+    #    }
+  }
+}
