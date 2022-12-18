@@ -2,18 +2,7 @@ const ping = require('ping');
 const version = 1.2;
 
 function probeIt(host) {
-  return new Promise((res, err) => {
-    try {
-      ping.sys.probe(host, function (isAlive) {
-        console.log('isAlive = ', isAlive);
-        const msg = `For host=${host}, isAlive returned ${isAlive}`;
-        console.log(msg);
-        res(msg);
-      });
-    } catch (e) {
-      err(e);
-    }
-  });
+  return ping.promise.probe(host);
 }
 
 exports.handler = async (event) => {
@@ -22,7 +11,13 @@ exports.handler = async (event) => {
   const messages = [];
 
   for (const host of hosts) {
-    messages.push(await probeIt(host));
+    try {
+      const response = await probeIt(host);
+      messages.push(`For host=${host}, response = ${JSON.stringify(response)}`);
+    } catch (e) {
+      console.log('ERROR!!!');
+      console.log(e);
+    }
   }
 
   return {
