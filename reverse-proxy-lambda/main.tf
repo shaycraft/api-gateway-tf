@@ -1,5 +1,5 @@
 provider "aws" {
-  region = var.AWS_REGION
+  region = var.aws_region
 }
 
 data "aws_caller_identity" "current" {
@@ -64,7 +64,7 @@ resource "aws_subnet" "subnet_public" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = "10.0.1.0/24"
   map_public_ip_on_launch = true // makes it a public subnet
-  availability_zone       = var.AVAILABILITY_ZONE
+  availability_zone       = var.availability_zone
 
   tags = {
     Name = "terraform subnet_public"
@@ -123,30 +123,34 @@ resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-#Lambda 
+# Lambda
+locals {
+  selected_lambda_config = var.LAMBDA_CONFIG.selected[var.SELECTED_LAMBDA]
+}
+
 resource "aws_lambda_permission" "apigw_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
   function_name = "arn:aws:lambda:us-west-2:395053504835:function:${aws_lambda_function.lambda_function.function_name}"
   principal     = "apigateway.amazonaws.com"
 
-  source_arn = "arn:aws:execute-api:${var.AWS_REGION}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
+  source_arn = "arn:aws:execute-api:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${aws_apigatewayv2_api.lambda_proxy_api.id}/*/*/{proxy+}"
 }
 
 data "archive_file" "archive" {
-  output_path = var.LAMBDA_FILE
+  output_path = var.LAMBDA_CONFIG.payload_file
   type        = "zip"
-  source_dir  = "lambda_payload"
+  source_dir  = local.selected_lambda_config.source_dir
 }
 
 resource "aws_lambda_function" "lambda_function" {
-  filename      = var.LAMBDA_FILE
-  function_name = var.LAMBDA_NAME
-  description   = var.LAMBDA_DESCRIPTION
+  filename      = var.LAMBDA_CONFIG.payload_file
+  function_name = local.selected_lambda_config.name
+  description   = local.selected_lambda_config.description
   role          = aws_iam_role.iam_for_lambda.arn
-  handler       = var.LAMBDA_HANDLER
-  runtime       = var.LAMBDA_RUNTIME
-  #source_code_hash = base64sha256(filebase64("./${var.LAMBDA_FILE}"))
+  handler       = local.selected_lambda_config.handler
+  runtime       = local.selected_lambda_config.runtime
+
   source_code_hash = data.archive_file.archive.output_base64sha256
   vpc_config {
     subnet_ids         = [aws_subnet.subnet_public.id]
