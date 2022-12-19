@@ -8,9 +8,6 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "ping": "^0.4.2"
-  },
   "devDependencies": {
     "prettier": "^2.8.1"
   },

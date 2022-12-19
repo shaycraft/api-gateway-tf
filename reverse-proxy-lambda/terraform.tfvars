@@ -12,6 +12,7 @@ LAMBDA_CONFIG = {
       description = "Function to test internal and external network connectivity"
       source_dir  = "src/ping-test"
       handler     = "index.handler"
+      timeout     = 10
     }
     "proxy" = {
       runtime     = "python3.9"
@@ -19,6 +20,7 @@ LAMBDA_CONFIG = {
       description = "GIS server reverse proxy"
       source_dir  = "src/gis-reverse-proxy"
       handler     = "lambda_function.lambda_handler"
+      timeout     = 3
     }
   }
 }
