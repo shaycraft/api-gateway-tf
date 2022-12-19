@@ -25,7 +25,6 @@ function ping(host, port) {
       });
 
       socket.on('timeout', () => {
-        console.debug(`DEBUG: got timeout for ${host}, ${port} `);
         socket.destroy();
         resolve(`Timed out connecting to host=${host}, port=${port}`);
       });
