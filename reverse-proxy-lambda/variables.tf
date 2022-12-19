@@ -15,7 +15,7 @@ variable "LAMBDA_CONFIG" {
       description = string
       source_dir  = string
       handler     = string
-
+      timeout     = optional(number)
     }))
   })
 }
@@ -23,4 +23,10 @@ variable "LAMBDA_CONFIG" {
 variable "SELECTED_LAMBDA" {
   type    = string
   default = "ping"
+}
+
+variable "DEFAULT_LAMBDA_TIMEOUT" {
+  type        = number
+  default     = 3
+  description = "Default timeout (in seconds) for lambda execution"
 }

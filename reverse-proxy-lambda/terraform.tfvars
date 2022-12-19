@@ -12,6 +12,7 @@ LAMBDA_CONFIG = {
       description = "Function to test internal and external network connectivity"
       source_dir  = "src/ping-test"
       handler     = "index.handler"
+      timeout     = 15
     }
     "proxy" = {
       runtime     = "python3.9"
