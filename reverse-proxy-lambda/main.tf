@@ -118,6 +118,34 @@ resource "aws_security_group" "security_group" {
   }
 }
 
+resource "aws_default_network_acl" "default_network_acl" {
+  default_network_acl_id = aws_vpc.vpc.default_network_acl_id
+  subnet_ids             = [aws_subnet.subnet_public.id]
+
+  ingress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  tags = {
+    Name      = "reverse-proxy-lambda-default-network-acl"
+    CreatedBy = "Terraform"
+  }
+}
+
 resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc_access_execution" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"

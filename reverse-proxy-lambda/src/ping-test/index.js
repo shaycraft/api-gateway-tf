@@ -10,7 +10,7 @@ function ping(host, port) {
   return new Promise((resolve, reject) => {
     try {
       const socket = net.createConnection(
-        { port: port || 80, host, timeout: 1000 },
+        { port: port || 80, host, timeout: 5000 },
         () => {
           socket.destroy();
           resolve(`Connected successfully to ${host}`);
