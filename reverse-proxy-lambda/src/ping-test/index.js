@@ -48,25 +48,17 @@ exports.handler = async (event) => {
     { host: 'yahoo.com', port: 80 },
   ];
 
-  const messages = [];
+  try {
+    const results = testList.map((entry) => ping(entry.host, entry.port));
 
-  for (const entry of testList) {
-    try {
-      const response = await ping(entry.host, entry.port);
-      messages.push(
-        `For host=${entry.host}, port ${
-          entry.port
-        }, response = ${JSON.stringify(response)}`
-      );
-    } catch (e) {
-      console.log('ERROR!!!');
-      console.log(e);
-    }
+    const messages = await Promise.all(results);
+    return {
+      event,
+      messages,
+      version,
+    };
+  } catch (err) {
+    console.log('ERROR!!!');
+    console.log(err);
   }
-
-  return {
-    event,
-    messages,
-    version,
-  };
 };
