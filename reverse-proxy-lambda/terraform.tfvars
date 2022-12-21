@@ -25,3 +25,5 @@ LAMBDA_CONFIG = {
     }
   }
 }
+
+SELECTED_LAMBDA = "proxy"
