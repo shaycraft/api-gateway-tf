@@ -52,7 +52,7 @@ resource "aws_iam_role_policy_attachment" "base" {
 # vpc
 
 resource "aws_vpc" "vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr_block
   #  enable_dns_support   = true
   #  enable_dns_hostnames = true
   #  instance_tenancy     = "default"
@@ -63,7 +63,7 @@ resource "aws_vpc" "vpc" {
 }
 resource "aws_subnet" "subnet_public" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 10)
   map_public_ip_on_launch = true // makes it a public subnet
   availability_zone       = var.availability_zone
 
@@ -74,7 +74,7 @@ resource "aws_subnet" "subnet_public" {
 
 resource "aws_subnet" "subnet_private" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = "10.0.2.0/24"
+  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 15)
   map_public_ip_on_launch = false // private subnet
   availability_zone       = var.availability_zone
 
@@ -102,8 +102,7 @@ resource "aws_route_table_association" "route_table_association_private" {
 
 
 resource "aws_internet_gateway" "internet_gateway" {
-  depends_on = [aws_vpc.vpc, aws_subnet.subnet_public]
-  vpc_id     = aws_vpc.vpc.id
+  vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name = "terraform internet_gateway"
@@ -111,8 +110,7 @@ resource "aws_internet_gateway" "internet_gateway" {
 }
 
 resource "aws_route_table" "route_table_public" {
-  depends_on = [aws_vpc.vpc, aws_internet_gateway.internet_gateway]
-  vpc_id     = aws_vpc.vpc.id
+  vpc_id = aws_vpc.vpc.id
 
   route {
     //associated subnet can reach everywhere
