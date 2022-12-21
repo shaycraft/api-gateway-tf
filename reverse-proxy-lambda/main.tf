@@ -296,6 +296,12 @@ resource "aws_lambda_function" "lambda_function" {
     security_group_ids = [aws_default_security_group.default_security_group.id]
   }
 
+  environment {
+    variables = {
+      natGatewayIp = aws_nat_gateway.nat_gateway.private_ip
+    }
+  }
+
   tags = {
     Name = "terraform lambda"
   }
