@@ -74,7 +74,7 @@ resource "aws_subnet" "subnet_public" {
 
 resource "aws_subnet" "subnet_private" {
   vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = "10.0.42.0/24"
+  cidr_block              = "10.0.2.0/24"
   map_public_ip_on_launch = false // private subnet
   availability_zone       = var.availability_zone
 
@@ -95,7 +95,10 @@ resource "aws_route_table" "route_table_private" {
   }
 }
 
-
+resource "aws_route_table_association" "route_table_association_private" {
+  subnet_id      = aws_subnet.subnet_private.id
+  route_table_id = aws_route_table.route_table_private.id
+}
 
 
 resource "aws_internet_gateway" "internet_gateway" {
@@ -124,12 +127,6 @@ resource "aws_route_table" "route_table_public" {
 }
 
 resource "aws_route_table_association" "route_table_association_public" {
-  depends_on = [
-    aws_vpc.vpc,
-    aws_subnet.subnet_public,
-    aws_route_table.route_table_public
-  ]
-
   subnet_id      = aws_subnet.subnet_public.id
   route_table_id = aws_route_table.route_table_public.id
 }
