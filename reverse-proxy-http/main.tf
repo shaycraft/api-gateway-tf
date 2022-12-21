@@ -59,7 +59,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "https://sampleserver6.arcgisonline.com/{proxy}"
+            uri                  = "${var.PROXY_BASE_PATH}/{proxy}"
             connectionType       = "INTERNET"
           }
         }
