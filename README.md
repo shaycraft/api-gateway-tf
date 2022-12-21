@@ -6,6 +6,7 @@
 * lambda - reverse proxy with lambda
 
  based off of https://www.maxivanov.io/deploy-aws-lambda-to-vpc-with-terraform/?utm_source=pocket_reader
+** Try this: https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest/examples/with-vpc
 
 
 ## Releases

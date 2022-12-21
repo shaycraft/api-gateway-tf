@@ -50,11 +50,12 @@ resource "aws_iam_role_policy_attachment" "base" {
 }
 
 # vpc
+
 resource "aws_vpc" "vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-  instance_tenancy     = "default"
+  cidr_block = "10.0.0.0/16"
+  #  enable_dns_support   = true
+  #  enable_dns_hostnames = true
+  #  instance_tenancy     = "default"
 
   tags = {
     Name = "terraform private vpc"
@@ -71,8 +72,35 @@ resource "aws_subnet" "subnet_public" {
   }
 }
 
-resource "aws_internet_gateway" "internet_gateway" {
+resource "aws_subnet" "subnet_private" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = "10.0.42.0/24"
+  map_public_ip_on_launch = false // private subnet
+  availability_zone       = var.availability_zone
+
+  tags = {
+    Name = "terraform subnet private"
+  }
+}
+
+resource "aws_route_table" "route_table_private" {
   vpc_id = aws_vpc.vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
+  }
+
+  tags = {
+    Name = "terraform route_table private"
+  }
+}
+
+
+
+
+resource "aws_internet_gateway" "internet_gateway" {
+  depends_on = [aws_vpc.vpc, aws_subnet.subnet_public]
+  vpc_id     = aws_vpc.vpc.id
 
   tags = {
     Name = "terraform internet_gateway"
@@ -80,7 +108,8 @@ resource "aws_internet_gateway" "internet_gateway" {
 }
 
 resource "aws_route_table" "route_table_public" {
-  vpc_id = aws_vpc.vpc.id
+  depends_on = [aws_vpc.vpc, aws_internet_gateway.internet_gateway]
+  vpc_id     = aws_vpc.vpc.id
 
   route {
     //associated subnet can reach everywhere
@@ -95,15 +124,21 @@ resource "aws_route_table" "route_table_public" {
 }
 
 resource "aws_route_table_association" "route_table_association_public" {
+  depends_on = [
+    aws_vpc.vpc,
+    aws_subnet.subnet_public,
+    aws_route_table.route_table_public
+  ]
+
   subnet_id      = aws_subnet.subnet_public.id
   route_table_id = aws_route_table.route_table_public.id
 }
 
-resource "aws_security_group" "security_group" {
+resource "aws_default_security_group" "default_security_group" {
   vpc_id = aws_vpc.vpc.id
 
   ingress {
-    protocol    = "-1"
+    protocol    = -1
     self        = true
     from_port   = 0
     to_port     = 0
@@ -116,11 +151,67 @@ resource "aws_security_group" "security_group" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # The below was from ec2 project config:
+
+  #  egress = [
+  #    {
+  #      cidr_blocks      = ["0.0.0.0/0", ]
+  #      description      = ""
+  #      from_port        = 0
+  #      ipv6_cidr_blocks = []
+  #      prefix_list_ids  = []
+  #      protocol         = "-1"
+  #      security_groups  = []
+  #      self             = false
+  #      to_port          = 0
+  #    }
+  #  ]
+  #  ingress = [
+  #    {
+  #      cidr_blocks      = ["0.0.0.0/0", ]
+  #      description      = "SSH Port"
+  #      from_port        = 22
+  #      ipv6_cidr_blocks = []
+  #      prefix_list_ids  = []
+  #      protocol         = "tcp"
+  #      security_groups  = []
+  #      self             = false
+  #      to_port          = 22
+  #    },
+  #    {
+  #      cidr_blocks      = ["0.0.0.0/0", ]
+  #      description      = "HTTP port"
+  #      from_port        = 80
+  #      ipv6_cidr_blocks = []
+  #      prefix_list_ids  = []
+  #      protocol         = "tcp"
+  #      security_groups  = []
+  #      self             = false
+  #      to_port          = 80
+  #    },
+  #    {
+  #      cidr_blocks      = ["0.0.0.0/0", ]
+  #      description      = "HTTPS port"
+  #      from_port        = 443
+  #      ipv6_cidr_blocks = []
+  #      prefix_list_ids  = []
+  #      protocol         = "tcp"
+  #      security_groups  = []
+  #      self             = false
+  #      to_port          = 443
+  #    }
+  #  ]
+
+  tags = {
+    Name      = "proxy-default-security-group"
+    CreatedBy = "Terraform"
+  }
 }
 
 resource "aws_default_network_acl" "default_network_acl" {
   default_network_acl_id = aws_vpc.vpc.default_network_acl_id
-  subnet_ids             = [aws_subnet.subnet_public.id]
+  subnet_ids             = [aws_subnet.subnet_public.id, aws_subnet.subnet_private.id]
 
   ingress {
     protocol   = -1
@@ -145,6 +236,27 @@ resource "aws_default_network_acl" "default_network_acl" {
     CreatedBy = "Terraform"
   }
 }
+
+# eip and nat gateway
+resource "aws_eip" "eip" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.internet_gateway]
+  tags = {
+    Name      = "proxy-eip"
+    CreatedBy = "terraform"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.eip.id
+  subnet_id     = aws_subnet.subnet_public.id
+
+  tags = {
+    Name      = "proxy-nat-gateway"
+    CreatedBy = "Terraform"
+  }
+}
+
 
 resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc_access_execution" {
   role       = aws_iam_role.iam_for_lambda.name
@@ -181,9 +293,10 @@ resource "aws_lambda_function" "lambda_function" {
   timeout       = local.selected_lambda_config.timeout == null ? var.DEFAULT_LAMBDA_TIMEOUT : local.selected_lambda_config.timeout
 
   source_code_hash = data.archive_file.archive.output_base64sha256
+
   vpc_config {
-    subnet_ids         = [aws_subnet.subnet_public.id]
-    security_group_ids = [aws_security_group.security_group.id]
+    subnet_ids         = [aws_subnet.subnet_private.id]
+    security_group_ids = [aws_default_security_group.default_security_group.id]
   }
 
   tags = {
@@ -196,14 +309,16 @@ resource "aws_apigatewayv2_deployment" "deployment" {
   description = "Terraform robot deployment beep boop beep!"
   depends_on = [
     aws_apigatewayv2_route.proxy_route,
-    aws_apigatewayv2_integration.lambda_integration
+    aws_apigatewayv2_integration.lambda_integration,
+    aws_lambda_function.lambda_function
   ]
 
   triggers = {
     redeployment = sha1(join(",", tolist(
       [
         jsonencode(aws_apigatewayv2_integration.lambda_integration),
-        jsonencode(aws_apigatewayv2_route.proxy_route)
+        jsonencode(aws_apigatewayv2_route.proxy_route),
+        jsonencode(aws_lambda_function.lambda_function)
       ]
     )))
   }
@@ -234,7 +349,6 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
   payload_format_version = "2.0"
   integration_uri        = aws_lambda_function.lambda_function.arn
 }
-
 
 resource "aws_apigatewayv2_api" "lambda_proxy_api" {
   name          = "terraform-reverse-proxy-lambda"
