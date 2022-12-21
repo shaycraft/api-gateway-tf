@@ -1,6 +1,8 @@
 aws_region        = "us-west-2"
 availability_zone = "us-west-2b"
 
+vpc_cidr_block = "10.0.0.0/16"
+
 LAMBDA_CONFIG = {
   aws_region        = "us-west-2"
   availability_zone = "us-west-2b"

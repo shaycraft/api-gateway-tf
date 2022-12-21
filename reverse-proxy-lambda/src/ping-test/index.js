@@ -42,7 +42,7 @@ exports.handler = async (event) => {
   const testList = [
     { host: '10.0.1.1', port: 22 },
     { host: '10.0.1.1', port: 23 },
-    { host: '10.0.1.86', port: 22 },
+    { host: process.env.natGatewayIp, port: 22 },
     { host: 'google.com', port: 80 },
     { host: 'yahoo.com', port: 80 },
   ];

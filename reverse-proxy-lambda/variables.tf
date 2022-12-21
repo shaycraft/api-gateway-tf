@@ -30,3 +30,8 @@ variable "DEFAULT_LAMBDA_TIMEOUT" {
   default     = 3
   description = "Default timeout (in seconds) for lambda execution"
 }
+
+variable "vpc_cidr_block" {
+  type        = string
+  description = "CIDR block for VPC"
+}
