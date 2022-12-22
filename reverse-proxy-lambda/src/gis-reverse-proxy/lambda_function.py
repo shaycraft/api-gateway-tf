@@ -2,14 +2,16 @@ import base64
 
 import urllib3
 
+import os
+
 
 def lambda_handler(event, context):
-    url = f"https://sampleserver6.arcgisonline.com/{event['pathParameters']['proxy']}"
+    url = f"{os.environ['PROXY_BASE_PATH']}/{event['pathParameters']['proxy']}"
 
     if event.get('rawQueryString'):
         url = url + "?" + event['rawQueryString']
 
-    # print(f"url will be {url}")
+    print(f"url will be {url}")
 
     # Two-way to have http method following if lambda proxy is enabled or not
     if event.get('httpMethod'):
@@ -75,4 +77,3 @@ def lambda_handler(event, context):
         }
 
     return response
-

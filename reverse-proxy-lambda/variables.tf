@@ -31,6 +31,11 @@ variable "DEFAULT_LAMBDA_TIMEOUT" {
   description = "Default timeout (in seconds) for lambda execution"
 }
 
+variable "PROXY_BASE_PATH" {
+  type        = string
+  description = "Base path to use for reverse proxy url"
+}
+
 variable "vpc_cidr_block" {
   type        = string
   description = "CIDR block for VPC"

@@ -13,3 +13,7 @@ output "gateway_private_ip" {
 output "gateway_public_ip" {
   value = aws_nat_gateway.nat_gateway.public_ip
 }
+
+output "proxy_base_path" {
+  value = var.PROXY_BASE_PATH
+}

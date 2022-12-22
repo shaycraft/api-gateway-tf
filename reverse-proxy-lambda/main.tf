@@ -296,7 +296,8 @@ resource "aws_lambda_function" "lambda_function" {
 
   environment {
     variables = {
-      natGatewayIp = aws_nat_gateway.nat_gateway.private_ip
+      natGatewayIp    = aws_nat_gateway.nat_gateway.private_ip
+      PROXY_BASE_PATH = var.PROXY_BASE_PATH
     }
   }
 
