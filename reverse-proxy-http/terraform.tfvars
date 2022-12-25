@@ -1,1 +1,1 @@
-PROXY_BASE_PATH = "https://sampleserver6.arcgisonline.com"
+proxy_base_path = "https://sampleserver6.arcgisonline.com"

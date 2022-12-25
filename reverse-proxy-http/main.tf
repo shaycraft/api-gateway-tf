@@ -1,16 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-west-2"
-}
-
-
 resource "aws_apigatewayv2_deployment" "default_deployment" {
   api_id      = aws_apigatewayv2_api.esri_http_proxy.id
   description = "Terraform robot deployment beep boop beep!"
@@ -19,10 +6,6 @@ resource "aws_apigatewayv2_deployment" "default_deployment" {
     create_before_destroy = true
   }
 }
-
-# output "endpoint" {
-#   value = aws_apigatewayv2_api.esri_http_proxy.api_endpoint
-# }
 
 resource "aws_apigatewayv2_stage" "default_stage" {
   api_id        = aws_apigatewayv2_api.esri_http_proxy.id
@@ -59,7 +42,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "${var.PROXY_BASE_PATH}/{proxy}"
+            uri                  = "${var.proxy_base_path}/{proxy}"
             connectionType       = "INTERNET"
           }
         }
