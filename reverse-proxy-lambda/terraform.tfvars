@@ -1,5 +1,4 @@
-aws_region        = "us-west-2"
-availability_zone = "us-west-2b"
+aws_region = "us-west-2"
 
 vpc_cidr_block = "10.0.0.0/16"
 
@@ -27,4 +26,4 @@ LAMBDA_CONFIG = {
 }
 
 SELECTED_LAMBDA = "proxy"
-PROXY_BASE_PATH = "https://sampleserver6.arcgisonline.com"
+proxy_base_path = "https://sampleserver6.arcgisonline.com"

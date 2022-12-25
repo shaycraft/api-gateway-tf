@@ -15,5 +15,5 @@ output "gateway_public_ip" {
 }
 
 output "proxy_base_path" {
-  value = var.PROXY_BASE_PATH
+  value = var.proxy_base_path
 }

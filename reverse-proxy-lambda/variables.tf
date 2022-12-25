@@ -2,10 +2,6 @@ variable "aws_region" {
   type = string
 }
 
-variable "availability_zone" {
-  type = string
-}
-
 variable "LAMBDA_CONFIG" {
   type = object({
     payload_file = string
@@ -31,7 +27,7 @@ variable "DEFAULT_LAMBDA_TIMEOUT" {
   description = "Default timeout (in seconds) for lambda execution"
 }
 
-variable "PROXY_BASE_PATH" {
+variable "proxy_base_path" {
   type        = string
   description = "Base path to use for reverse proxy url"
 }

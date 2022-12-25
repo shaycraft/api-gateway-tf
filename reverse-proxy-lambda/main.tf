@@ -1,15 +1,12 @@
-provider "aws" {
-  region = var.aws_region
-}
-
-data "aws_caller_identity" "current" {
-
+data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "az" {
+  state = "available"
 }
 
 # iam
 data "aws_iam_policy_document" "policy_document_assume_lambda_role" {
   statement {
-    sid    = "IssaLambdaAssumeRole"
+    sid    = "TfLambdaAssumeRole"
     effect = "Allow"
 
     principals {
@@ -25,7 +22,7 @@ data "aws_iam_policy_document" "policy_document_exec" {
   version = "2012-10-17"
 
   statement {
-    sid    = "issaLambdaExecPermission"
+    sid    = "TfLambdaExecPermission"
     effect = "Allow"
 
     resources = ["*"]
@@ -65,7 +62,7 @@ resource "aws_subnet" "subnet_public" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 10)
   map_public_ip_on_launch = true // makes it a public subnet
-  availability_zone       = var.availability_zone
+  availability_zone       = data.aws_availability_zones.az.names[0]
 
   tags = {
     Name = "terraform subnet_public"
@@ -76,7 +73,7 @@ resource "aws_subnet" "subnet_private" {
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 15)
   map_public_ip_on_launch = false // private subnet
-  availability_zone       = var.availability_zone
+  availability_zone       = data.aws_availability_zones.az.names[0]
 
   tags = {
     Name = "terraform subnet private"
@@ -146,57 +143,6 @@ resource "aws_default_security_group" "default_security_group" {
     protocol    = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  # The below was from ec2 project config:
-
-  #  egress = [
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = ""
-  #      from_port        = 0
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "-1"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 0
-  #    }
-  #  ]
-  #  ingress = [
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "SSH Port"
-  #      from_port        = 22
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 22
-  #    },
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "HTTP port"
-  #      from_port        = 80
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 80
-  #    },
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "HTTPS port"
-  #      from_port        = 443
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 443
-  #    }
-  #  ]
 
   tags = {
     Name      = "proxy-default-security-group"
@@ -297,7 +243,7 @@ resource "aws_lambda_function" "lambda_function" {
   environment {
     variables = {
       natGatewayIp    = aws_nat_gateway.nat_gateway.private_ip
-      PROXY_BASE_PATH = var.PROXY_BASE_PATH
+      PROXY_BASE_PATH = var.proxy_base_path
     }
   }
 
