@@ -1,5 +1,5 @@
 variable "proxy_base_path" {
-  type = string
+  type = list(string)
 }
 
 variable "region" {

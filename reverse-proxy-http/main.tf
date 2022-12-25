@@ -1,19 +1,11 @@
-resource "aws_apigatewayv2_deployment" "default_deployment" {
-  api_id      = aws_apigatewayv2_api.esri_http_proxy.id
-  description = "Terraform robot deployment beep boop beep!"
+module "api-gateway" {
+  source                 = "terraform-aws-modules/apigateway-v2/aws"
+  name                   = "test-second-api"
+  create_api_domain_name = false
+  create_default_stage   = true
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+  protocol_type = "HTTP"
 
-resource "aws_apigatewayv2_stage" "default_stage" {
-  api_id        = aws_apigatewayv2_api.esri_http_proxy.id
-  name          = "$default"
-  deployment_id = aws_apigatewayv2_deployment.default_deployment.id
-}
-
-resource "aws_apigatewayv2_api" "esri_http_proxy" {
   body = jsonencode({
     openapi = "3.0.1"
     info = {
@@ -42,7 +34,7 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
             httpMethod           = "GET"
             payloadFormatVersion = "1.0"
             type                 = "HTTP_PROXY"
-            uri                  = "${var.proxy_base_path}/{proxy}"
+            uri                  = "${var.proxy_base_path[0]}/{proxy}"
             connectionType       = "INTERNET"
           }
         }
@@ -50,7 +42,10 @@ resource "aws_apigatewayv2_api" "esri_http_proxy" {
     }
   })
 
-  name          = "ESRI HTTP Proxy"
-  protocol_type = "HTTP"
-
+  tags = {
+    Name      = "terraform api"
+    CreatedBy = "terraform"
+  }
 }
+
+
