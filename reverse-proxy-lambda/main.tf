@@ -1,15 +1,12 @@
-provider "aws" {
-  region = var.aws_region
-}
-
-data "aws_caller_identity" "current" {
-
+data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "az" {
+  state = "available"
 }
 
 # iam
 data "aws_iam_policy_document" "policy_document_assume_lambda_role" {
   statement {
-    sid    = "IssaLambdaAssumeRole"
+    sid    = "TfLambdaAssumeRole"
     effect = "Allow"
 
     principals {
@@ -25,7 +22,7 @@ data "aws_iam_policy_document" "policy_document_exec" {
   version = "2012-10-17"
 
   statement {
-    sid    = "issaLambdaExecPermission"
+    sid    = "TfLambdaExecPermission"
     effect = "Allow"
 
     resources = ["*"]
@@ -51,86 +48,44 @@ resource "aws_iam_role_policy_attachment" "base" {
 
 # vpc
 
-resource "aws_vpc" "vpc" {
-  cidr_block = var.vpc_cidr_block
-  #  enable_dns_support   = true
-  #  enable_dns_hostnames = true
-  #  instance_tenancy     = "default"
-
+module "vpc" {
+  source                       = "terraform-aws-modules/vpc/aws"
+  name                         = "da-vpc"
+  cidr                         = "10.0.0.0/16"
+  public_subnets               = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets              = ["10.0.50.0/24", "10.0.51.0/24"]
+  azs                          = data.aws_availability_zones.az.names
+  create_database_subnet_group = false
+  enable_nat_gateway           = true
+  enable_dns_hostnames         = true
+  default_network_acl_egress = [
+    {
+      protocol   = -1
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+    }
+  ]
+  default_network_acl_ingress = [
+    {
+      protocol   = -1
+      rule_no    = 100
+      action     = "allow"
+      cidr_block = "0.0.0.0/0"
+      from_port  = 0
+      to_port    = 0
+  }]
   tags = {
-    Name = "terraform private vpc"
-  }
-}
-resource "aws_subnet" "subnet_public" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 10)
-  map_public_ip_on_launch = true // makes it a public subnet
-  availability_zone       = var.availability_zone
-
-  tags = {
-    Name = "terraform subnet_public"
+    Name      = "vpc terraform module poc"
+    CreatedBy = "terraform"
   }
 }
 
-resource "aws_subnet" "subnet_private" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.vpc_cidr_block, 8, 15)
-  map_public_ip_on_launch = false // private subnet
-  availability_zone       = var.availability_zone
-
-  tags = {
-    Name = "terraform subnet private"
-  }
-}
-
-resource "aws_route_table" "route_table_private" {
-  vpc_id = aws_vpc.vpc.id
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway.id
-  }
-
-  tags = {
-    Name = "terraform route_table private"
-  }
-}
-
-resource "aws_route_table_association" "route_table_association_private" {
-  subnet_id      = aws_subnet.subnet_private.id
-  route_table_id = aws_route_table.route_table_private.id
-}
-
-
-resource "aws_internet_gateway" "internet_gateway" {
-  vpc_id = aws_vpc.vpc.id
-
-  tags = {
-    Name = "terraform internet_gateway"
-  }
-}
-
-resource "aws_route_table" "route_table_public" {
-  vpc_id = aws_vpc.vpc.id
-
-  route {
-    //associated subnet can reach everywhere
-    cidr_block = "0.0.0.0/0"
-    //CRT uses this IGW to reach internet
-    gateway_id = aws_internet_gateway.internet_gateway.id
-  }
-
-  tags = {
-    Name = "terraform public route_table"
-  }
-}
-
-resource "aws_route_table_association" "route_table_association_public" {
-  subnet_id      = aws_subnet.subnet_public.id
-  route_table_id = aws_route_table.route_table_public.id
-}
-
+# TODO:  rename to `default_lambda_security_group`
 resource "aws_default_security_group" "default_security_group" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = module.vpc.vpc_id
 
   ingress {
     protocol    = -1
@@ -147,111 +102,11 @@ resource "aws_default_security_group" "default_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # The below was from ec2 project config:
-
-  #  egress = [
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = ""
-  #      from_port        = 0
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "-1"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 0
-  #    }
-  #  ]
-  #  ingress = [
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "SSH Port"
-  #      from_port        = 22
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 22
-  #    },
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "HTTP port"
-  #      from_port        = 80
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 80
-  #    },
-  #    {
-  #      cidr_blocks      = ["0.0.0.0/0", ]
-  #      description      = "HTTPS port"
-  #      from_port        = 443
-  #      ipv6_cidr_blocks = []
-  #      prefix_list_ids  = []
-  #      protocol         = "tcp"
-  #      security_groups  = []
-  #      self             = false
-  #      to_port          = 443
-  #    }
-  #  ]
-
   tags = {
     Name      = "proxy-default-security-group"
     CreatedBy = "Terraform"
   }
 }
-
-resource "aws_default_network_acl" "default_network_acl" {
-  default_network_acl_id = aws_vpc.vpc.default_network_acl_id
-  subnet_ids             = [aws_subnet.subnet_public.id, aws_subnet.subnet_private.id]
-
-  ingress {
-    protocol   = -1
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
-  }
-
-  egress {
-    protocol   = -1
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "0.0.0.0/0"
-    from_port  = 0
-    to_port    = 0
-  }
-
-  tags = {
-    Name      = "reverse-proxy-lambda-default-network-acl"
-    CreatedBy = "Terraform"
-  }
-}
-
-# eip and nat gateway
-resource "aws_eip" "eip" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.internet_gateway]
-  tags = {
-    Name      = "proxy-eip"
-    CreatedBy = "terraform"
-  }
-}
-
-resource "aws_nat_gateway" "nat_gateway" {
-  allocation_id = aws_eip.eip.id
-  subnet_id     = aws_subnet.subnet_public.id
-
-  tags = {
-    Name      = "proxy-nat-gateway"
-    CreatedBy = "Terraform"
-  }
-}
-
 
 resource "aws_iam_role_policy_attachment" "iam_role_policy_attachment_lambda_vpc_access_execution" {
   role       = aws_iam_role.iam_for_lambda.name
@@ -290,14 +145,14 @@ resource "aws_lambda_function" "lambda_function" {
   source_code_hash = data.archive_file.archive.output_base64sha256
 
   vpc_config {
-    subnet_ids         = [aws_subnet.subnet_private.id]
+    subnet_ids         = [module.vpc.private_subnets[0]]
     security_group_ids = [aws_default_security_group.default_security_group.id]
   }
 
   environment {
     variables = {
-      natGatewayIp    = aws_nat_gateway.nat_gateway.private_ip
-      PROXY_BASE_PATH = var.PROXY_BASE_PATH
+      natGatewayIp    = module.vpc.nat_public_ips[0]
+      PROXY_BASE_PATH = var.proxy_base_path
     }
   }
 
