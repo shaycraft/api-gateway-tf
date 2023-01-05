@@ -6,6 +6,6 @@ output "public_ip" {
   value = module.vpc.nat_public_ips
 }
 
-output "proxy_base_path" {
-  value = var.proxy_base_path
+output "gis_proxy_base_url" {
+  value = var.gis_proxy_base_url
 }
