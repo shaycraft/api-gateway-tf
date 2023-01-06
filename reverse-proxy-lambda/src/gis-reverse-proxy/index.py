@@ -10,7 +10,7 @@ import base64
 import urllib3
 
 
-def lambda_handler(event, context):
+def handler(event, context):
     """
     lambda handler
     :param event:

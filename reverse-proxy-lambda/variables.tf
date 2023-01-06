@@ -10,7 +10,6 @@ variable "LAMBDA_CONFIG" {
       name        = string
       description = string
       source_dir  = string
-      handler     = string
       timeout     = optional(number)
     }))
   })
