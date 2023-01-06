@@ -151,8 +151,8 @@ resource "aws_lambda_function" "lambda_function" {
 
   environment {
     variables = {
-      natGatewayIp    = module.vpc.nat_public_ips[0]
-      PROXY_BASE_PATH = var.proxy_base_path
+      natGatewayIp       = module.vpc.nat_public_ips[0]
+      gis_proxy_base_url = var.gis_proxy_base_url
     }
   }
 

@@ -27,9 +27,10 @@ variable "DEFAULT_LAMBDA_TIMEOUT" {
   description = "Default timeout (in seconds) for lambda execution"
 }
 
-variable "proxy_base_path" {
+variable "gis_proxy_base_url" {
   type        = string
   description = "Base path to use for reverse proxy url"
+  default     = "https://localhost"
 }
 
 variable "vpc_cidr_block" {

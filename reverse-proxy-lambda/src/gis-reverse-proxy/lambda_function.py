@@ -1,17 +1,28 @@
-import base64
-
-import urllib3
-
+"""
+Reverse Proxy to GIS data lambda
+"""
 import os
 
 
+import base64
+
+
+import urllib3
+
+
 def lambda_handler(event, context):
-    url = f"{os.environ['PROXY_BASE_PATH']}/{event['pathParameters']['proxy']}"
+    """
+    lambda handler
+    :param event:
+    :param context:
+    :return:
+    """
+    base_path = os.environ['gis_proxy_base_url']
+
+    url = f"{base_path}/{event['pathParameters']['proxy']}"
 
     if event.get('rawQueryString'):
         url = url + "?" + event['rawQueryString']
-
-    print(f"url will be {url}")
 
     # Two-way to have http method following if lambda proxy is enabled or not
     if event.get('httpMethod'):
@@ -39,13 +50,6 @@ def lambda_handler(event, context):
         resp = http.request(method=http_method, url=url, headers=headers,
                             body=body)
 
-        print('content-type= ')
-        print(resp.headers['content-type'])
-
-        headers_coll = {i: resp.headers[i] for i in resp.headers}
-        print('headers_coll = ')
-        print(headers_coll)
-
         if resp.headers['content-type'].find('application/json') > -1 \
                 or resp.headers['content-type'].find('text/html') > -1:
             is_binary = False
@@ -55,15 +59,13 @@ def lambda_handler(event, context):
             body = base64.b64encode(resp.data)
 
         response = {
-            "headers": { 
-                "Date": resp.headers['Date'],
-                "Content-Type": resp.headers['Content-Type'],
-                # "Content-Length": resp.headers['content-length'],
-                "Connection": resp.headers['Connection']
+            "headers": {
+                "content-type": resp.headers['content-type'],
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*"
             },
             # "headers": {i: resp.headers[i] for i in resp.headers},
             "statusCode": resp.status,
-            # "body": resp.data.decode('utf-8')
             "isBase64Encoded": is_binary,
             "body": body,
         }

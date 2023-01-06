@@ -26,4 +26,3 @@ LAMBDA_CONFIG = {
 }
 
 SELECTED_LAMBDA = "proxy"
-proxy_base_path = "https://sampleserver6.arcgisonline.com"
