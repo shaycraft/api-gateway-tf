@@ -138,7 +138,7 @@ resource "aws_lambda_function" "lambda_function" {
   function_name = local.selected_lambda_config.name
   description   = local.selected_lambda_config.description
   role          = aws_iam_role.iam_for_lambda.arn
-  handler       = local.selected_lambda_config.handler
+  handler       = "index.handler"
   runtime       = local.selected_lambda_config.runtime
   timeout       = local.selected_lambda_config.timeout == null ? var.DEFAULT_LAMBDA_TIMEOUT : local.selected_lambda_config.timeout
 
